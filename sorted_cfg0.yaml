@@ -1,0 +1,153 @@
+# Organize config for sorting a messy multi-TB dump
+# Run with: organize run organize.yaml --simulate   (test first!)
+# Run with: organize run organize.yaml              (for real)
+#
+# Rules run top to bottom — first match wins.
+# Adjust paths, keywords, and extensions to fit your setup.
+
+rules:
+
+  # -----------------------------------------------------------------------
+  # 1. SCREENSHOTS — by filename pattern
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [jpg, jpeg, png, webp, gif]
+      - filename:
+          contains:
+            - "screenshot"
+            - "screen shot"
+            - "screen-shot"
+            - "screencast"
+            - "capture"
+            - "bildschirm"   # German
+            - "снимок"       # Russian
+            - "captura"      # Spanish/Portuguese
+    actions:
+      - copy: /interim/Screenshots/
+
+  # -----------------------------------------------------------------------
+  # 2. REAL PHOTOS — have camera EXIF data, sorted by year/month
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [jpg, jpeg, heic, raw, cr2, cr3, nef, arw, dng, orf, rw2]
+      - exif:
+          Make: {min_length: 1}
+    actions:
+      - copy: /interim/Photos/{exif.date_time.year}/{exif.date_time.year}-{exif.date_time.month}/
+
+  # -----------------------------------------------------------------------
+  # 3. VIDEOS
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [mp4, mov, avi, mkv, m4v, wmv, flv, webm, mpg, mpeg, 3gp]
+    actions:
+      - copy: /interim/Videos/{created.year}/
+
+  # -----------------------------------------------------------------------
+  # 4. UNIVERSITY DOCUMENTS — matched by path or filename keywords
+  #    Adjust keywords to match your old folder structure
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [pdf, docx, doc, xlsx, xls, pptx, ppt, pages, numbers, key, txt, md]
+      - path:
+          contains:
+            - "uni"
+            - "university"
+            - "college"
+            - "lecture"
+            - "semester"
+            - "thesis"
+            - "dissertation"
+            - "assignment"
+            - "essay"
+            - "module"
+            - "course"
+            - "semester"
+    actions:
+      - copy: /interim/Documents/University/
+
+  # -----------------------------------------------------------------------
+  # 5. FINANCE DOCUMENTS — matched by path or filename keywords
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [pdf, docx, doc, xlsx, xls, csv, txt]
+      - path:
+          contains:
+            - "finance"
+            - "invoice"
+            - "receipt"
+            - "tax"
+            - "bank"
+            - "payslip"
+            - "insurance"
+            - "steuer"      # German: tax
+            - "rechnung"    # German: invoice
+            - "N26"
+    actions:
+      - copy: /interim/Documents/Finance/
+
+  # -----------------------------------------------------------------------
+  # 6. BULLET JOURNAL & PRINTABLES
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [pdf, png, jpg, jpeg]
+      - path:
+          contains:
+            - "bullet"
+            - "journal"
+            - "planner"
+            - "printable"
+            - "template"
+    actions:
+      - copy: /interim/Documents/Printables/
+
+  # -----------------------------------------------------------------------
+  # 7. ALL OTHER PDFs
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [pdf]
+    actions:
+      - copy: /interim/Documents/PDFs/{created.year}/
+
+  # -----------------------------------------------------------------------
+  # 8. OFFICE DOCUMENTS (not yet sorted above)
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [docx, doc, xlsx, xls, pptx, ppt, pages, numbers, key]
+    actions:
+      - copy: /interim/Documents/Office/{created.year}/
+
+  # -----------------------------------------------------------------------
+  # 9. REMAINING IMAGES — no EXIF (memes, downloaded media, etc.)
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters:
+      - extension: [jpg, jpeg, png, gif, webp, heic, bmp, tiff, svg]
+    actions:
+      - copy: /interim/No-EXIF/
+
+  # -----------------------------------------------------------------------
+  # 10. CATCH-ALL — anything not matched above
+  # -----------------------------------------------------------------------
+  - locations: /dump
+    subfolders: true
+    filters: []
+    actions:
+      - copy: /interim/Unsorted/
